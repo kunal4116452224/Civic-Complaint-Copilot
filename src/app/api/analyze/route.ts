@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseJSON } from "@/lib/parseJSON";
 
-// ── Authority mapping — deterministic, never from AI ──────────────────────
 const AUTHORITY_MAP: Record<string, string> = {
   garbage: "Municipal Corporation",
   pothole: "Public Works Department (PWD)",
@@ -14,9 +14,8 @@ const AUTHORITY_MAP: Record<string, string> = {
 };
 
 const VALID_TYPES = Object.keys(AUTHORITY_MAP);
-const VALID_SEV = ["low", "medium", "high"];
+const VALID_SEV = ["low", "medium", "high"] as const;
 
-// ── ID generator ──────────────────────────────────────────────────────────
 function genId(): string {
   const ts = Date.now().toString(36).toUpperCase().slice(-5);
   const rand = Array.from({ length: 3 }, () =>
@@ -25,54 +24,47 @@ function genId(): string {
   return `CCC-${ts}-${rand}`;
 }
 
-// ── Call Anthropic Claude ─────────────────────────────────────────────────
-async function callClaude(
-  messages: Array<{ role: string; content: unknown }>,
-  systemPrompt: string
-) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+type GroqMessage = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};
+
+async function callGroq(messages: GroqMessage[], maxTokens = 1024): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY is not configured");
+    throw new Error("GROQ_API_KEY is not configured");
   }
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      system: systemPrompt,
+      model: "llama-3.3-70b-versatile",
+      temperature: 0,
+      max_tokens: maxTokens,
+      response_format: { type: "json_object" },
       messages,
     }),
   });
 
   if (!res.ok) {
     const errBody = await res.text();
-    throw new Error(`Anthropic API error ${res.status}: ${errBody}`);
+    throw new Error(`Groq API error ${res.status}: ${errBody}`);
   }
 
-  const data = await res.json();
-  // Extract text from content blocks
-  const textBlock = data.content?.find(
-    (b: { type: string }) => b.type === "text"
-  );
-  return textBlock?.text || "";
-}
+  const data = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
 
-// ── Robust JSON parser ────────────────────────────────────────────────────
-function parseJSON<T>(text: string): T {
-  const cleaned = text.replace(/```(?:json)?\s*/g, "").replace(/```/g, "").trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found in AI response");
-    return JSON.parse(match[0]);
+  const content = data.choices?.[0]?.message?.content;
+  if (!content || typeof content !== "string") {
+    throw new Error("Groq response did not include message content");
   }
+
+  return content;
 }
 
 type EscalatePayload = {
@@ -96,26 +88,23 @@ function isEscalatePayload(payload: unknown): payload is EscalatePayload {
   );
 }
 
-// ── POST /api/analyze ─────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { mode = "analyze", text, location, landmark, imageB64, imageMime, payload } = body as {
+    const { mode = "analyze", text, location, landmark, imageB64, payload } = body as {
       mode?: "analyze" | "escalate" | "translate";
       text?: string;
       location?: string;
       landmark?: string;
       imageB64?: string;
-      imageMime?: string;
       payload?: EscalatePayload | { description?: string };
     };
 
-    // ── MODE: TRANSLATE ─────────────────────────────────────────────────
+    if (!process.env.GROQ_API_KEY) {
+      return NextResponse.json({ error: "GROQ_API_KEY is not configured" }, { status: 500 });
+    }
+
     if (mode === "translate") {
-      const translateSystem = `You are a formal translator for civic complaints. 
-Translate the provided text to Hindi (Devanagari script) while maintaining a highly formal tone.
-Keep any Complaint IDs (starting with CCC-) and specific locations in English if they are technical (e.g., MG Road, Sector 14).
-Return ONLY valid JSON: { "translated_text": "..." }`;
       const translateText =
         payload &&
         typeof payload === "object" &&
@@ -127,134 +116,152 @@ Return ONLY valid JSON: { "translated_text": "..." }`;
       if (!translateText.trim()) {
         return NextResponse.json({ error: "Description is required for translation" }, { status: 400 });
       }
-      
-      const translateResponse = await callClaude(
-        [{ role: "user", content: `Translate this formal complaint to Hindi: ${translateText}` }],
-        translateSystem
-      );
-      
-      const result = parseJSON<{ translated_text: string }>(translateResponse);
-      return NextResponse.json(result);
+
+      const translateResponse = await callGroq([
+        {
+          role: "system",
+          content:
+            "You are a formal translator for civic complaints. Translate to Hindi (Devanagari), keep IDs like CCC- and technical locations in English. Return only valid JSON: {\"translated_text\":\"...\"}.",
+        },
+        { role: "user", content: `Translate this formal complaint to Hindi:\n${translateText}` },
+      ]);
+
+      const parsed = parseJSON<{ translated_text?: string }>(translateResponse);
+      if (!parsed.translated_text || typeof parsed.translated_text !== "string") {
+        throw new Error("Invalid translation response JSON");
+      }
+
+      return NextResponse.json({ translated_text: parsed.translated_text });
     }
 
-    // ── MODE: ESCALATE ─────────────────────────────────────────────────
     if (mode === "escalate") {
-      const escalateSystem = `You are an expert in civic advocacy. Write a formal escalation/reminder letter for an unresolved complaint.
-Return ONLY valid JSON:
-{
-  "title": "Escalation: [Original Title]",
-  "description": "Formal 3-paragraph escalation letter. Start with 'This is a formal reminder regarding Complaint ID: [ID]'. Tone should be firm, urgent, and professional. Mention that the issue is still unresolved and needs immediate attention from [Department]. Target 500 characters."
-}
-Rules:
-- Be polite but very firm
-- Mention the specific department and ID
-- End with a request for a status update within 48 hours`;
-
       if (!isEscalatePayload(payload)) {
         return NextResponse.json({ error: "Invalid escalation payload" }, { status: 400 });
       }
 
       const original = payload;
-      const escalateResponse = await callClaude(
-        [{ role: "user", content: `Escalate this complaint:
-ID: ${original.id}
-Department: ${original.department}
-Title: ${original.title}
-Issue: ${original.issue_summary}
-Location: ${original.location}` }],
-        escalateSystem
-      );
+      const escalateResponse = await callGroq([
+        {
+          role: "system",
+          content:
+            "You are an expert in civic advocacy. Write a formal escalation/reminder letter for an unresolved complaint. Return only valid JSON: {\"title\":\"Escalation: [Original Title]\",\"description\":\"Formal 3-paragraph escalation letter. Start with 'This is a formal reminder regarding Complaint ID: [ID]'. Tone firm, urgent, professional. Mention unresolved issue, immediate attention from [Department], and request status update within 48 hours.\"}",
+        },
+        {
+          role: "user",
+          content: `Escalate this complaint:\nID: ${original.id}\nDepartment: ${original.department}\nTitle: ${original.title}\nIssue: ${original.issue_summary}\nLocation: ${original.location}`,
+        },
+      ]);
 
-      const result = parseJSON<{ title: string; description: string }>(escalateResponse);
-      return NextResponse.json({ ...original, ...result, id: original.id + "-ESC", status: "In Progress" });
+      const parsed = parseJSON<{ title?: string; description?: string }>(escalateResponse);
+      if (!parsed.title || !parsed.description) {
+        throw new Error("Invalid escalation response JSON");
+      }
+
+      return NextResponse.json({
+        ...original,
+        title: parsed.title,
+        description: parsed.description,
+        id: `${original.id}-ESC`,
+        status: "In Progress",
+      });
     }
 
-    // ── MODE: ANALYZE (Original Logic + Confidence) ──────────────────────
     if (!text && !imageB64) {
-      return NextResponse.json(
-        { error: "Please provide a description or an image" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Please provide a description or an image" }, { status: 400 });
     }
 
     if (!location) {
       return NextResponse.json({ error: "Location is required" }, { status: 400 });
     }
 
-    // ── STEP 1: Classify (Updated with Confidence) ──────────────────────
-    const classifySystem = `You are a civic issue triage officer. Analyze the report and classify it.
-Return ONLY valid JSON:
-{
-  "issue_type": "garbage, pothole, sewage, streetlight, road_damage, flooding, noise, illegal_construction, other",
-  "severity": "low, medium, high",
-  "issue_summary": "1-2 sentence summary",
-  "confidence": 0.0 to 1.0,
-  "reasoning": "Briefly state why (e.g., 'Detected wastewater and odor keywords')"
-}
-Rules:
-- If only an image is provided, describe it first in issue_summary
-- High severity = safety risk`;
-
-    const classifyContent: unknown[] = [];
-    if (imageB64 && imageMime) {
-      classifyContent.push({
-        type: "image",
-        source: { type: "base64", media_type: imageMime, data: imageB64 },
-      });
-    }
-    classifyContent.push({
-      type: "text",
-      text: text
-        ? `Issue report: ${text}\nLocation: ${location}${landmark ? `\nNear: ${landmark}` : ""}`
-        : `Analyze this image of a civic issue at: ${location}`,
-    });
-
-    const classifyResponse = await callClaude(
-      [{ role: "user", content: classifyContent }],
-      classifySystem
-    );
+    const classifyResponse = await callGroq([
+      {
+        role: "system",
+        content:
+          "You are a civic issue triage officer. Classify the report and return only valid JSON with this exact schema: {\"issue_type\":\"garbage|pothole|sewage|streetlight|road_damage|flooding|noise|illegal_construction|other\",\"severity\":\"low|medium|high\",\"issue_summary\":\"...\",\"confidence\":0.0,\"reasoning\":\"...\"}. Keep reasoning brief.",
+      },
+      {
+        role: "user",
+        content: [
+          `Issue report: ${text || "(no text provided)"}`,
+          `Location: ${location}`,
+          landmark ? `Near: ${landmark}` : "",
+          imageB64 ? "Image provided: yes (text-only model; classify from available context)." : "Image provided: no",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      },
+    ]);
 
     const classification = parseJSON<{
-      issue_type: string;
-      severity: string;
-      issue_summary: string;
-      confidence: number;
-      reasoning: string;
+      issue_type?: string;
+      severity?: string;
+      issue_summary?: string;
+      confidence?: number;
+      reasoning?: string;
     }>(classifyResponse);
 
-    // Sanitize
-    if (!VALID_TYPES.includes(classification.issue_type)) classification.issue_type = "other";
-    if (!VALID_SEV.includes(classification.severity)) classification.severity = "medium";
+    let issue_type = typeof classification.issue_type === "string" ? classification.issue_type : "other";
+    let severity = typeof classification.severity === "string" ? classification.severity : "medium";
 
-    // ── STEP 2: Generate Formal Complaint ───────────────────────────────
-    const department = AUTHORITY_MAP[classification.issue_type] || "Municipal Corporation";
+    if (!VALID_TYPES.includes(issue_type)) issue_type = "other";
+    if (!VALID_SEV.includes(severity as (typeof VALID_SEV)[number])) severity = "medium";
 
-    const generateSystem = `You are a formal complaint writer. Return ONLY valid JSON:
-{
-  "title": "Concise title",
-  "description": "Formal body (Dear Sir/Madam...). Polished, professional tone. Max 500 chars."
-}`;
+    const issue_summary =
+      typeof classification.issue_summary === "string" && classification.issue_summary.trim()
+        ? classification.issue_summary.trim()
+        : "Civic issue reported at the provided location.";
 
-    const generateResponse = await callClaude(
-      [
-        {
-          role: "user",
-          content: `Generate formal complaint for: ${classification.issue_summary}\nType: ${classification.issue_type}\nLocation: ${location}\nDepartment: ${department}`,
-        },
-      ],
-      generateSystem
-    );
+    const confidence =
+      typeof classification.confidence === "number" && Number.isFinite(classification.confidence)
+        ? Math.min(1, Math.max(0, classification.confidence))
+        : 0.5;
 
-    const complaint = parseJSON<{ title: string; description: string }>(generateResponse);
+    const reasoning =
+      typeof classification.reasoning === "string" && classification.reasoning.trim()
+        ? classification.reasoning.trim()
+        : "Classified using available report details.";
 
-    // Enforce limits
-    if (complaint.title.length > 80) complaint.title = complaint.title.slice(0, 77) + "...";
-    if (complaint.description.length > 2000) complaint.description = complaint.description.slice(0, 1997) + "...";
+    const department = AUTHORITY_MAP[issue_type] || "Municipal Corporation";
+
+    const generateResponse = await callGroq([
+      {
+        role: "system",
+        content:
+          "You are a formal complaint writer. Return only valid JSON with this exact schema: {\"title\":\"...\",\"description\":\"formal complaint\"}. Keep title concise and description polished, professional, and under 500 characters when possible.",
+      },
+      {
+        role: "user",
+        content: [
+          `Issue summary: ${issue_summary}`,
+          `Issue type: ${issue_type}`,
+          `Severity: ${severity}`,
+          `Location: ${location}`,
+          `Department: ${department}`,
+        ].join("\n"),
+      },
+    ]);
+
+    const complaint = parseJSON<{ title?: string; description?: string }>(generateResponse);
+
+    let title = typeof complaint.title === "string" && complaint.title.trim() ? complaint.title.trim() : "Civic Issue Complaint";
+    let description =
+      typeof complaint.description === "string" && complaint.description.trim()
+        ? complaint.description.trim()
+        : "Dear Sir/Madam, I am writing to report a civic issue at the stated location and request prompt resolution.";
+
+    if (title.length > 80) title = `${title.slice(0, 77)}...`;
+    if (description.length > 2000) description = `${description.slice(0, 1997)}...`;
 
     return NextResponse.json({
       id: genId(),
-      ...classification,
-      ...complaint,
+      issue_type,
+      severity,
+      issue_summary,
+      confidence,
+      reasoning,
+      title,
+      description,
       department,
       location: location || "",
       landmark: landmark || "",
