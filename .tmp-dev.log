@@ -1,0 +1,24 @@
+
+> civic-complaint-copilot@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.4:3000
+- Environments: .env.local
+✓ Ready in 864ms
+Creating turbopack project { dir: 'E:\\anitgravity\\civic-complaint-copilot', testMode: true }
+
+ GET / 200 in 1639ms (next.js: 550ms, application-code: 1089ms)
+[browser] Image with src "/assets/temporary-workers-lift-waste-across-ap-cities.avif" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET /report 200 in 171ms (next.js: 73ms, application-code: 97ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ POST /api/generate 200 in 2.2s (next.js: 223ms, application-code: 1948ms)
+ GET /tracking 200 in 440ms (next.js: 349ms, application-code: 90ms)
+ GET /before-after 200 in 252ms (next.js: 140ms, application-code: 112ms)
+ GET /report 200 in 74ms (next.js: 9ms, application-code: 65ms)
+ GET /tracking 200 in 168ms (next.js: 21ms, application-code: 147ms)
+ GET /before-after 200 in 178ms (next.js: 48ms, application-code: 130ms)
+ GET / 200 in 195ms (next.js: 61ms, application-code: 134ms)
+^C^C
