@@ -26,6 +26,7 @@ const TEXT: Record<Lang, Record<string, string>> = {
 
         // Dashboard
         dashboardLabel: "Dashboard",
+        adminPanel: "Admin Panel",
         complaintOverview: "Complaint Performance Overview",
         totalComplaints: "Total Complaints",
         resolved: "Resolved",
@@ -40,6 +41,8 @@ const TEXT: Record<Lang, Record<string, string>> = {
         allComplaints: "All Complaints (Admin View)",
         myComplaints: "My Complaints",
         submittedBy: "Submitted by",
+        confirmDelete: "Are you sure you want to delete this complaint?",
+        allStatuses: "All Statuses",
         checkingAuth: "Checking authentication…",
 
         // Contact
@@ -211,6 +214,7 @@ const TEXT: Record<Lang, Record<string, string>> = {
 
         // Dashboard
         dashboardLabel: "डैशबोर्ड",
+        adminPanel: "एडमिन पैनल",
         complaintOverview: "शिकायत प्रदर्शन अवलोकन",
         totalComplaints: "कुल शिकायतें",
         resolved: "समाधान",
@@ -225,6 +229,8 @@ const TEXT: Record<Lang, Record<string, string>> = {
         allComplaints: "सभी शिकायतें (एडमिन दृश्य)",
         myComplaints: "मेरी शिकायतें",
         submittedBy: "द्वारा सबमिट",
+        confirmDelete: "क्या आप वाकई इस शिकायत को हटाना चाहते हैं?",
+        allStatuses: "सभी स्थितियाँ",
         checkingAuth: "प्रमाणीकरण जाँच रहा है…",
 
         // Contact

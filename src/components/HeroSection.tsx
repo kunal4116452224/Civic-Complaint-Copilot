@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { HERO_IMAGES, HERO_STATS } from "@/data/constants";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeroSectionProps {
   onReportClick: () => void;
@@ -19,6 +20,7 @@ const STAT_KEYS: Record<string, string> = {
 export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) {
   const [index, setIndex] = useState(0);
   const { t } = useLang();
+  const auth = useAuth();
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -57,9 +59,9 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-4 inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/85"
+          className={`mb-4 inline-block rounded-full border px-3 py-1 text-xs uppercase tracking-[0.2em] ${auth.userRole === "admin" ? "border-indigo-500/50 bg-indigo-500/20 text-indigo-200" : "border-white/20 bg-white/10 text-white/85"}`}
         >
-          {t("civicCopilot")}
+          {auth.userRole === "admin" ? "🛡️ Admin Control Mode" : t("civicCopilot")}
         </motion.p>
 
         <motion.h1
@@ -89,13 +91,15 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
           transition={{ delay: 0.15 }}
           className="mt-8 flex flex-wrap gap-3"
         >
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={onReportClick}
-            className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400"
-          >
-            {t("reportIssueNow")}
-          </motion.button>
+          {auth.userRole !== "admin" && (
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={onReportClick}
+              className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400"
+            >
+              {t("reportIssueNow")}
+            </motion.button>
+          )}
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={onNearbyClick}

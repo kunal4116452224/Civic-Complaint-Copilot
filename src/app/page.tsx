@@ -9,10 +9,19 @@ import { HeroSection } from "@/components/HeroSection";
 import { CIVIC_QUOTES, ISSUE_VISUALS, NEARBY_ISSUES } from "@/data/constants";
 import { ISSUE_ICONS } from "@/config/authorities";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 export default function LandingPage() {
   const router = useRouter();
   const { t } = useLang();
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (auth.ready && auth.isLoggedIn && auth.userRole === "admin") {
+      router.replace("/dashboard");
+    }
+  }, [auth.ready, auth.isLoggedIn, auth.userRole, router]);
 
   const highlights = [
     {
@@ -34,6 +43,14 @@ export default function LandingPage() {
       image: "/assets/temporary-workers-lift-waste-across-ap-cities.avif",
     },
   ];
+
+  if (auth.userRole === "admin") {
+    return (
+      <div className="flex min-h-screen items-center justify-center pt-24">
+        <p className="text-sm text-slate-400">Redirecting to admin panel...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { BeforeAfterCard } from "@/components/BeforeAfterCard";
 import { CIVIC_QUOTES, ISSUE_VISUALS } from "@/data/constants";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const showcase = [
   { key: "garbage", titleKey: "garbageCase" },
@@ -14,6 +17,16 @@ const showcase = [
 
 export default function BeforeAfterPage() {
   const { t } = useLang();
+  const auth = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (auth.ready && auth.isLoggedIn && auth.userRole === "admin") {
+      router.replace("/dashboard");
+    }
+  }, [auth.ready, auth.isLoggedIn, auth.userRole, router]);
+
+  if (auth.userRole === "admin") return null;
 
   return (
     <div className="min-h-screen pt-24">

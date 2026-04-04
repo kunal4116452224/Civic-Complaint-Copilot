@@ -15,6 +15,7 @@ const NAV_LABEL_KEYS: Record<string, string> = {
   Home: "home",
   "Report Issue": "reportIssue",
   Dashboard: "dashboard",
+  "Admin Panel": "adminPanel",
   "Track Complaints": "trackComplaints",
   "Before/After": "beforeAfter",
   Contact: "contact",
@@ -59,8 +60,8 @@ export function Navbar() {
   const roleBadge = auth.isLoggedIn ? (
     <span
       className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${auth.userRole === "admin"
-          ? "bg-indigo-500/20 text-indigo-300"
-          : "bg-blue-500/20 text-blue-300"
+        ? "bg-indigo-500/20 text-indigo-300"
+        : "bg-blue-500/20 text-blue-300"
         }`}
     >
       {auth.userRole === "admin" ? t("roleAdmin") : t("roleUser")}
@@ -80,7 +81,10 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-1.5 md:flex">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.filter(link => {
+            if (auth.userRole === "admin") return false; // Hide all standard links for admin
+            return true;
+          }).map((link) => {
             const active = pathname === link.href;
             const labelKey = NAV_LABEL_KEYS[link.label] ?? link.label;
             return (
@@ -96,6 +100,18 @@ export function Navbar() {
               </Link>
             );
           })}
+
+          {auth.userRole === "admin" && (
+            <Link
+              href="/dashboard"
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${pathname === "/dashboard"
+                ? "bg-indigo-500/20 text-indigo-700 dark:text-indigo-200"
+                : "text-slate-700 hover:bg-slate-200/60 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
+                }`}
+            >
+              {t("adminPanel")}
+            </Link>
+          )}
 
           {/* Language toggle */}
           <button
@@ -157,7 +173,10 @@ export function Navbar() {
             className="border-t border-slate-200 bg-white/95 px-6 pb-4 pt-3 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/95 md:hidden"
           >
             <div className="flex flex-col gap-1">
-              {NAV_LINKS.map((link) => {
+              {NAV_LINKS.filter(link => {
+                if (auth.userRole === "admin") return false;
+                return true;
+              }).map((link) => {
                 const active = pathname === link.href;
                 const labelKey = NAV_LABEL_KEYS[link.label] ?? link.label;
                 return (
@@ -174,6 +193,19 @@ export function Navbar() {
                   </Link>
                 );
               })}
+
+              {auth.userRole === "admin" && (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${pathname === "/dashboard"
+                    ? "bg-indigo-500/20 text-indigo-700 dark:text-indigo-200"
+                    : "text-slate-700 hover:bg-slate-200/60 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
+                    }`}
+                >
+                  {t("adminPanel")}
+                </Link>
+              )}
 
               {/* Language toggle */}
               <button

@@ -1,0 +1,202 @@
+[
+    {
+        "id": 1,
+        "type": "garbage",
+        "location": "Rohini Sector 24",
+        "status": "Resolved",
+        "submittedBy": "User1",
+        "date": "2026-03-20"
+    },
+    {
+        "id": 2,
+        "type": "pothole",
+        "location": "Pitampura Block A",
+        "status": "In Progress",
+        "submittedBy": "User2",
+        "date": "2026-03-22"
+    },
+    {
+        "id": 3,
+        "type": "streetlight",
+        "location": "Janakpuri West",
+        "status": "Rejected",
+        "submittedBy": "User3",
+        "date": "2026-03-25"
+    },
+    {
+        "id": 4,
+        "type": "garbage",
+        "location": "Rohini Sector 24",
+        "status": "Resolved",
+        "submittedBy": "User4",
+        "date": "2026-03-26"
+    },
+    {
+        "id": 5,
+        "type": "pothole",
+        "location": "Dwarka Sector 10",
+        "status": "Submitted",
+        "submittedBy": "User5",
+        "date": "2026-03-27"
+    },
+    {
+        "id": 6,
+        "type": "streetlight",
+        "location": "Pitampura Block A",
+        "status": "Resolved",
+        "submittedBy": "User6",
+        "date": "2026-03-28"
+    },
+    {
+        "id": 7,
+        "type": "garbage",
+        "location": "Janakpuri West",
+        "status": "In Progress",
+        "submittedBy": "User7",
+        "date": "2026-03-29"
+    },
+    {
+        "id": 8,
+        "type": "pothole",
+        "location": "Rohini Sector 24",
+        "status": "Resolved",
+        "submittedBy": "User8",
+        "date": "2026-03-30"
+    },
+    {
+        "id": 9,
+        "type": "streetlight",
+        "location": "Dwarka Sector 10",
+        "status": "Submitted",
+        "submittedBy": "User9",
+        "date": "2026-03-31"
+    },
+    {
+        "id": 10,
+        "type": "garbage",
+        "location": "Pitampura Block A",
+        "status": "Resolved",
+        "submittedBy": "User10",
+        "date": "2026-04-01"
+    },
+    {
+        "id": 11,
+        "type": "pothole",
+        "location": "Janakpuri West",
+        "status": "Rejected",
+        "submittedBy": "User11",
+        "date": "2026-04-01"
+    },
+    {
+        "id": 12,
+        "type": "streetlight",
+        "location": "Rohini Sector 24",
+        "status": "In Progress",
+        "submittedBy": "User12",
+        "date": "2026-04-02"
+    },
+    {
+        "id": 13,
+        "type": "garbage",
+        "location": "Dwarka Sector 10",
+        "status": "Resolved",
+        "submittedBy": "User13",
+        "date": "2026-04-02"
+    },
+    {
+        "id": 14,
+        "type": "pothole",
+        "location": "Pitampura Block A",
+        "status": "Resolved",
+        "submittedBy": "User14",
+        "date": "2026-04-02"
+    },
+    {
+        "id": 15,
+        "type": "streetlight",
+        "location": "Janakpuri West",
+        "status": "Submitted",
+        "submittedBy": "User15",
+        "date": "2026-04-03"
+    },
+    {
+        "id": 16,
+        "type": "garbage",
+        "location": "Rohini Sector 24",
+        "status": "Resolved",
+        "submittedBy": "User16",
+        "date": "2026-04-03"
+    },
+    {
+        "id": 17,
+        "type": "pothole",
+        "location": "Dwarka Sector 10",
+        "status": "In Progress",
+        "submittedBy": "User17",
+        "date": "2026-04-03"
+    },
+    {
+        "id": 18,
+        "type": "streetlight",
+        "location": "Pitampura Block A",
+        "status": "Resolved",
+        "submittedBy": "User18",
+        "date": "2026-04-04"
+    },
+    {
+        "id": 19,
+        "type": "garbage",
+        "location": "Janakpuri West",
+        "status": "Resolved",
+        "submittedBy": "User19",
+        "date": "2026-04-04"
+    },
+    {
+        "id": 20,
+        "type": "pothole",
+        "location": "Rohini Sector 24",
+        "status": "Submitted",
+        "submittedBy": "User20",
+        "date": "2026-04-04"
+    },
+    {
+        "id": 21,
+        "type": "garbage",
+        "location": "Dwarka Sector 10",
+        "status": "Rejected",
+        "submittedBy": "User21",
+        "date": "2026-04-04"
+    },
+    {
+        "id": 22,
+        "type": "streetlight",
+        "location": "Rohini Sector 24",
+        "status": "Resolved",
+        "submittedBy": "User22",
+        "date": "2026-04-04"
+    },
+    {
+        "id": 23,
+        "type": "pothole",
+        "location": "Pitampura Block A",
+        "status": "In Progress",
+        "submittedBy": "User23",
+        "date": "2026-04-04"
+    },
+    {
+        "id": 24,
+        "type": "garbage",
+        "location": "Janakpuri West",
+        "status": "Resolved",
+        "submittedBy": "User24",
+        "date": "2026-04-04"
+    },
+    {
+        "id": 25,
+        "type": "streetlight",
+        "location": "Dwarka Sector 10",
+        "status": "Resolved",
+        "submittedBy": "User25",
+        "date": "2026-04-04"
+    }
+]

@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, FormEvent, useCallback } from "react";
+import { useState, FormEvent, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function ContactPage() {
     const { t } = useLang();
+    const auth = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (auth.ready && auth.isLoggedIn && auth.userRole === "admin") {
+            router.replace("/dashboard");
+        }
+    }, [auth.ready, auth.isLoggedIn, auth.userRole, router]);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
@@ -23,6 +33,8 @@ export default function ContactPage() {
         },
         [name, message]
     );
+
+    if (auth.userRole === "admin") return null;
 
     return (
         <div className="flex min-h-screen items-center justify-center px-4 pt-24 pb-16">
