@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLang } from "@/contexts/LanguageContext";
 
 interface Step {
   title: string;
@@ -32,6 +33,7 @@ export function StepperFlow({
   nextLabel,
   hideActions = false,
 }: StepperFlowProps) {
+  const { t } = useLang();
   const progress = (activeStep / (steps.length - 1)) * 100;
 
   return (
@@ -56,29 +58,27 @@ export function StepperFlow({
                 type="button"
                 onClick={() => isClickable && onStepClick(index)}
                 disabled={!isClickable}
-                className={`w-full rounded-xl border p-3 text-left transition ${
-                  isActive
-                    ? "border-emerald-400/60 bg-emerald-500/10"
-                    : isComplete
+                className={`w-full rounded-xl border p-3 text-left transition ${isActive
+                  ? "border-emerald-400/60 bg-emerald-500/10"
+                  : isComplete
                     ? "border-cyan-400/30 bg-cyan-500/10"
                     : "border-white/10 bg-white/[0.02]"
-                } ${isClickable ? "hover:border-white/30" : "cursor-not-allowed opacity-60"}`}
+                  } ${isClickable ? "hover:border-white/30" : "cursor-not-allowed opacity-60"}`}
               >
                 <div className="mb-1 flex items-center gap-2">
                   <span
-                    className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                      isActive
-                        ? "bg-emerald-400 text-emerald-950"
-                        : isComplete
+                    className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${isActive
+                      ? "bg-emerald-400 text-emerald-950"
+                      : isComplete
                         ? "bg-cyan-400 text-cyan-950"
                         : "bg-slate-700 text-slate-200"
-                    }`}
+                      }`}
                   >
                     {index + 1}
                   </span>
-                  <span className="text-sm font-semibold text-white">{step.title}</span>
+                  <span className="text-sm font-semibold text-white">{t(step.title)}</span>
                 </div>
-                <p className="text-xs text-slate-300">{step.description}</p>
+                <p className="text-xs text-slate-300">{t(step.description)}</p>
               </button>
             </li>
           );
@@ -93,7 +93,7 @@ export function StepperFlow({
             disabled={!canGoBack}
             className="rounded-xl border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Back
+            {t("backToEdit")}
           </button>
           <motion.button
             whileTap={{ scale: 0.98 }}

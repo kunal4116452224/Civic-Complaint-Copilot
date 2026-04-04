@@ -15,6 +15,7 @@ export interface Complaint {
   confidence?: number;
   reasoning?: string;
   imageSrc?: string | null;
+  submittedBy?: string;
 }
 
 export interface FormState {

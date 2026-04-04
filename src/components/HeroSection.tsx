@@ -4,14 +4,21 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { HERO_IMAGES, HERO_STATS } from "@/data/constants";
+import { useLang } from "@/contexts/LanguageContext";
 
 interface HeroSectionProps {
   onReportClick: () => void;
   onNearbyClick: () => void;
 }
 
+const STAT_KEYS: Record<string, string> = {
+  "Complaints resolved": "complaintsResolved",
+  "Avg resolution time": "avgResolutionTime",
+};
+
 export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) {
   const [index, setIndex] = useState(0);
+  const { t } = useLang();
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -34,7 +41,7 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
           >
             <Image
               src={HERO_IMAGES[index]}
-              alt="City maintenance activity"
+              alt={t("cityAlt")}
               fill
               priority
               className="object-cover"
@@ -52,7 +59,7 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
           viewport={{ once: true }}
           className="mb-4 inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/85"
         >
-          Civic Complaint Copilot
+          {t("civicCopilot")}
         </motion.p>
 
         <motion.h1
@@ -62,7 +69,7 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
           transition={{ delay: 0.05 }}
           className="max-w-3xl text-4xl font-extrabold leading-tight text-white md:text-6xl"
         >
-          Report city issues in minutes with AI-powered complaint drafting.
+          {t("heroTitle")}
         </motion.h1>
 
         <motion.p
@@ -72,7 +79,7 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
           transition={{ delay: 0.1 }}
           className="mt-5 max-w-2xl text-base text-slate-200 md:text-lg"
         >
-          Upload an image, describe the problem, and submit a polished complaint to the right authority with confidence.
+          {t("heroSubtitle")}
         </motion.p>
 
         <motion.div
@@ -87,14 +94,14 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
             onClick={onReportClick}
             className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400"
           >
-            Report Issue Now
+            {t("reportIssueNow")}
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={onNearbyClick}
             className="rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
           >
-            View Nearby Complaints
+            {t("viewNearbyComplaints")}
           </motion.button>
         </motion.div>
       </div>
@@ -104,7 +111,7 @@ export function HeroSection({ onReportClick, onNearbyClick }: HeroSectionProps) 
           {HERO_STATS.map((stat) => (
             <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-slate-300">{stat.label}</p>
+              <p className="text-sm text-slate-300">{t(STAT_KEYS[stat.label] ?? stat.label)}</p>
             </div>
           ))}
         </div>

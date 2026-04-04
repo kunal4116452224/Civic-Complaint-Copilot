@@ -15,6 +15,8 @@ const BeforeAfterCard = dynamic(
   }
 );
 
+import { useLang } from "@/contexts/LanguageContext";
+
 interface NearbyIssue {
   id: string;
   issue_type: string;
@@ -52,6 +54,7 @@ export function ResultSection({
   onOpenPdfPreview,
   onSubmitAndTrack,
 }: ResultSectionProps) {
+  const { t } = useLang();
   const visual = ISSUE_VISUALS[result.issue_type] ?? ISSUE_VISUALS.other;
 
   return (
@@ -64,61 +67,61 @@ export function ResultSection({
       <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-xl">
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
-            Detected Issue Type: {result.issue_type.replace(/_/g, " ")}
+            {t("detectedIssue")}: {t(result.issue_type) || result.issue_type.replace(/_/g, " ")}
           </span>
           <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200">
-            Suggested Authority: {result.department}
+            {t("suggestedAuthority")}: {t(result.department) || result.department}
           </span>
           <ConfidenceBadge score={result.confidence ?? 0.8} reasoning={result.reasoning} department={result.department} />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Reason for selection</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("reasonForSelection")}</p>
             <p className="text-sm text-slate-200">{authorityReason}</p>
-            <p className="mt-2 text-xs text-slate-400">{result.reasoning ?? "Mapped from issue category and severity analysis."}</p>
+            <p className="mt-2 text-xs text-slate-400">{result.reasoning ?? t("mappedAnalysis")}</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">AI issue summary</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("aiIssueSummary")}</p>
             <p className="text-sm text-slate-200">{result.issue_summary}</p>
           </div>
         </div>
       </div>
 
       <BeforeAfterCard
-        beforeLabel="Current Situation"
-        afterLabel="Expected Resolution"
+        beforeLabel={t("currentSituation")}
+        afterLabel={t("expectedResolution")}
         beforeImage={visual.before}
         afterImage={visual.after}
-        beforeAlt="Current civic issue state"
-        afterAlt="Expected civic issue resolution"
+        beforeAlt={t("currentCivicState")}
+        afterAlt={t("expectedCivicResolution")}
         className="shadow-xl"
       />
 
       <BeforeAfterCard
-        beforeLabel="Raw User Input"
-        afterLabel="AI Structured Complaint"
+        beforeLabel={t("rawUserInput")}
+        afterLabel={t("aiStructuredComplaint")}
         className="shadow-xl"
         beforeContent={
           <div className="h-auto p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Input text</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("inputText")}</p>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
-              {rawText.trim() || "Photo-only complaint"}
+              {rawText.trim() || t("photoOnlyComplaint")}
             </p>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Location</p>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("locationLabel")}</p>
             <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-300">{rawLocation}</p>
           </div>
         }
         afterContent={
           <div className="h-auto p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-cyan-300">Generated title</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-cyan-300">{t("generatedTitle")}</p>
             <input
               value={titleDraft}
               onChange={(event) => onTitleChange(event.target.value)}
               className="mt-2 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-cyan-400/60"
             />
 
-            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-cyan-300">Complaint body</p>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-cyan-300">{t("complaintBody")}</p>
             <textarea
               value={descriptionDraft}
               onChange={(event) => onDescriptionChange(event.target.value)}
@@ -135,19 +138,19 @@ export function ResultSection({
           onClick={onOpenPdfPreview}
           className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
         >
-          Download Official Complaint PDF
+          {t("downloadPdf")}
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={onSubmitAndTrack}
           className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400"
         >
-          Submit & Track
+          {t("submitAndTrack")}
         </motion.button>
       </div>
 
       <div id="nearby-section" className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-xl">
-        <h3 className="mb-4 text-lg font-bold text-white">Similar complaints nearby</h3>
+        <h3 className="mb-4 text-lg font-bold text-white">{t("similarNearby")}</h3>
         <div className="grid gap-3 md:grid-cols-3">
           {nearbyIssues.map((issue) => {
             const severity = SEV_CONFIG[issue.severity];

@@ -17,6 +17,7 @@ export const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/tracking", label: "Track Complaints" },
   { href: "/before-after", label: "Before/After" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export const CIVIC_QUOTES = [

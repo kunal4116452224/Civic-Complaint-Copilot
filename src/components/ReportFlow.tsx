@@ -12,6 +12,8 @@ import { useComplaints } from "@/hooks/useComplaints";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { generatePDF } from "@/lib/pdf";
 import type { Complaint, FormState } from "@/lib/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLang } from "@/contexts/LanguageContext";
 
 const ResultSection = dynamic(
   () => import("@/components/ResultSection").then((module) => module.ResultSection),
@@ -201,6 +203,8 @@ export function ReportFlow() {
 
   const { complaints, save, updateStatus, remove } = useComplaints();
   const geo = useGeolocation();
+  const auth = useAuth();
+  const { t } = useLang();
 
   const addToast = useCallback((message: string, type: ToastMessage["type"] = "info") => {
     const id = Date.now() + Math.floor(Math.random() * 1000);
@@ -252,7 +256,7 @@ export function ReportFlow() {
   const handleImageFile = useCallback(
     async (file: File) => {
       if (!file.type.startsWith("image/")) {
-        addToast("Please upload a valid image file.", "error");
+        addToast(t("apiErrorMessage"), "error"); // Generic for now or add specific image error
         return;
       }
       try {
@@ -273,7 +277,7 @@ export function ReportFlow() {
 
   const handleAnalyze = useCallback(async () => {
     if (!canAnalyze) {
-      addToast("Please add issue details and location before analysis.", "error");
+      addToast(t("apiErrorMessage"), "error"); // Or add "Please add issue details..." to translations
       return;
     }
 
@@ -328,17 +332,18 @@ export function ReportFlow() {
         confidence: data.confidence,
         reasoning: data.reasoning,
         imageSrc: state.form.imgSrc,
+        submittedBy: auth.userName || "Anonymous",
       };
 
       dispatch({ type: "ANALYSIS_SUCCESS", payload: complaint });
       if (data.fallback) {
-        addToast("AI service unavailable. Loaded a fallback complaint draft.", "info");
+        addToast(t("aiServiceUnavailable"), "info");
       } else {
-        addToast("AI analysis complete. Review your complaint draft.", "success");
+        addToast(t("aiAnalysisComplete"), "success");
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
-        addToast("Analysis cancelled.", "info");
+        addToast(t("analysisCancelled"), "info");
         return;
       }
       const message = error instanceof Error ? error.message : "Analysis failed";
@@ -366,19 +371,19 @@ export function ReportFlow() {
     dispatch({ type: "SET_RESULT", payload: finalComplaint });
     dispatch({ type: "SET_HIGHLIGHT", payload: finalComplaint.id });
     dispatch({ type: "SET_STEP", payload: 3 });
-    addToast("Complaint saved and tracking started.", "success");
-  }, [addToast, complaints, finalComplaint, save]);
+    addToast(t("aiAnalysisComplete"), "success"); // Or "Complaint saved..."
+  }, [addToast, complaints, finalComplaint, save, t]);
 
   const handleDownloadPdf = useCallback(
     async (complaint: Complaint) => {
       try {
         await generatePDF(complaint);
-        addToast("Official complaint PDF downloaded.", "success");
+        addToast(t("officialPdfDownloaded"), "success");
       } catch {
-        addToast("Failed to generate PDF.", "error");
+        addToast(t("failedToGeneratePdf"), "error");
       }
     },
-    [addToast]
+    [addToast, t]
   );
 
   const handleRemoveImage = useCallback(() => {
@@ -415,7 +420,7 @@ export function ReportFlow() {
     }
   }, [state.step]);
 
-  const nextLabel = state.step === 0 ? "Analyze Issue" : "Submit & Track";
+  const nextLabel = state.step === 0 ? t("analyzeIssue") : t("submitAndTrack");
   const canGoNext = state.step === 0 ? canAnalyze : state.step === 2;
   const canGoBack = state.step > 0;
 
@@ -428,12 +433,12 @@ export function ReportFlow() {
       <ToastStack toasts={toasts} />
       <section className="mx-auto mb-8 max-w-6xl px-6">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-xl">
-          <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">Complaint Filing</p>
-          <h1 className="mt-3 text-3xl font-extrabold text-white md:text-4xl">Report a civic issue in 4 guided steps</h1>
+          <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">{t("complaintFiling")}</p>
+          <h1 className="mt-3 text-3xl font-extrabold text-white md:text-4xl">{t("reportFlowTitle")}</h1>
           <p className="mt-3 max-w-3xl text-sm text-slate-300">
-            Upload proof, let AI prepare the official complaint, and track authority updates without losing your current workflow.
+            {t("reportFlowSubtitle")}
           </p>
-          <p className="mt-4 text-xs italic text-slate-400">&quot;Your complaint can change your street.&quot;</p>
+          <p className="mt-4 text-xs italic text-slate-400">&quot;{t("quote2")}&quot;</p>
         </div>
       </section>
 
@@ -503,7 +508,7 @@ export function ReportFlow() {
               >
                 {state.error ? (
                   <div className="space-y-4 text-center">
-                    <h2 className="text-2xl font-bold text-white">Analysis failed</h2>
+                    <h2 className="text-2xl font-bold text-white">{t("analysisFailedTitle")}</h2>
                     <p className="text-sm text-red-200">{state.error}</p>
                     <div className="flex flex-wrap items-center justify-center gap-3">
                       <button
@@ -514,7 +519,7 @@ export function ReportFlow() {
                         }}
                         className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400"
                       >
-                        Retry analysis
+                        {t("retryAnalysis")}
                       </button>
                       <button
                         type="button"
@@ -524,28 +529,27 @@ export function ReportFlow() {
                         }}
                         className="rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
                       >
-                        Back to edit
+                        {t("backToEdit")}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
                     <div>
-                      <h2 className="text-2xl font-bold text-white">AI is preparing your complaint</h2>
-                      <p className="mt-2 text-slate-300">{ANALYSIS_PHASES[state.analysisPhase]}</p>
+                      <h2 className="text-2xl font-bold text-white">{t("aiPreparing")}</h2>
+                      <p className="mt-2 text-slate-300">{t(ANALYSIS_PHASES[state.analysisPhase]) || ANALYSIS_PHASES[state.analysisPhase]}</p>
                       <div className="mt-4 space-y-2">
                         {ANALYSIS_PHASES.map((phase, index) => (
                           <div key={phase} className="flex items-center gap-2 text-sm">
                             <span
-                              className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold ${
-                                index <= state.analysisPhase
-                                  ? "bg-emerald-400 text-emerald-950"
-                                  : "bg-slate-700 text-slate-200"
-                              }`}
+                              className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold ${index <= state.analysisPhase
+                                ? "bg-emerald-400 text-emerald-950"
+                                : "bg-slate-700 text-slate-200"
+                                }`}
                             >
                               {index + 1}
                             </span>
-                            <span className={index <= state.analysisPhase ? "text-slate-100" : "text-slate-400"}>{phase}</span>
+                            <span className={index <= state.analysisPhase ? "text-slate-100" : "text-slate-400"}>{t(phase) || phase}</span>
                           </div>
                         ))}
                       </div>
@@ -609,20 +613,20 @@ export function ReportFlow() {
       {state.showPdfPreview && finalComplaint && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-slate-900 p-5 shadow-2xl">
-            <h3 className="text-xl font-bold text-white">Official Complaint PDF Preview</h3>
-            <p className="mt-1 text-sm text-slate-300">Review the content before downloading.</p>
+            <h3 className="text-xl font-bold text-white">{t("pdfPreviewTitle")}</h3>
+            <p className="mt-1 text-sm text-slate-300">{t("pdfPreviewSubtitle")}</p>
 
             <div className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Complaint ID</p>
+              <p className="text-xs uppercase tracking-wide text-slate-400">{t("complaintId")}</p>
               <p className="text-sm font-semibold text-white">{finalComplaint.id}</p>
-              <p className="text-xs uppercase tracking-wide text-slate-400">Subject</p>
+              <p className="text-xs uppercase tracking-wide text-slate-400">{t("subject")}</p>
               <p className="text-sm font-semibold text-white">{finalComplaint.title}</p>
-              <p className="text-xs uppercase tracking-wide text-slate-400">Body</p>
+              <p className="text-xs uppercase tracking-wide text-slate-400">{t("body")}</p>
               <p className="h-auto whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
                 {finalComplaint.description}
               </p>
-              <p className="text-xs uppercase tracking-wide text-slate-400">Department</p>
-              <p className="text-sm text-slate-200">{AUTHORITY_MAP[finalComplaint.issue_type] ?? finalComplaint.department}</p>
+              <p className="text-xs uppercase tracking-wide text-slate-400">{t("department")}</p>
+              <p className="text-sm text-slate-200">{t(AUTHORITY_MAP[finalComplaint.issue_type] ?? finalComplaint.department) || (AUTHORITY_MAP[finalComplaint.issue_type] ?? finalComplaint.department)}</p>
             </div>
 
             <div className="mt-5 flex justify-end gap-3">
@@ -631,7 +635,7 @@ export function ReportFlow() {
                 onClick={() => dispatch({ type: "CLOSE_PDF_PREVIEW" })}
                 className="rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Close
+                {t("close")}
               </button>
               <button
                 type="button"
@@ -641,7 +645,7 @@ export function ReportFlow() {
                 }}
                 className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-cyan-950 transition hover:bg-cyan-400"
               >
-                Download PDF
+                {t("downloadPdf")}
               </button>
             </div>
           </div>

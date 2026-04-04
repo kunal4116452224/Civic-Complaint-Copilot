@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { type ChangeEvent, type DragEvent, type RefObject } from "react";
 import type { FormState } from "@/lib/types";
+import { useLang } from "@/contexts/LanguageContext";
 
 interface UploadSectionProps {
   form: FormState;
@@ -36,6 +37,7 @@ export function UploadSection({
   onReplaceImage,
   onDetectLocation,
 }: UploadSectionProps) {
+  const { t } = useLang();
   return (
     <motion.section
       initial={{ opacity: 0, y: 18 }}
@@ -45,13 +47,13 @@ export function UploadSection({
     >
       <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Upload Evidence</h2>
+          <h2 className="text-xl font-bold text-white">{t("uploadEvidence")}</h2>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             className="rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
           >
-            Browse files
+            {t("browseFiles")}
           </button>
         </div>
 
@@ -83,21 +85,21 @@ export function UploadSection({
                   onClick={onReplaceImage}
                   className="rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/85"
                 >
-                  Replace image
+                  {t("replaceImage")}
                 </button>
                 <button
                   type="button"
                   onClick={onRemoveImage}
                   className="rounded-lg bg-red-500/80 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-500"
                 >
-                  Remove image
+                  {t("removeImage")}
                 </button>
               </div>
             </div>
           ) : (
             <div className="text-center">
-              <p className="text-sm font-semibold text-slate-100">Drag and drop a civic issue image</p>
-              <p className="mt-1 text-xs text-slate-400">PNG, JPG, WEBP supported</p>
+              <p className="text-sm font-semibold text-slate-100">{t("dragDropImage")}</p>
+              <p className="mt-1 text-xs text-slate-400">{t("supportedFormats")}</p>
             </div>
           )}
 
@@ -114,33 +116,33 @@ export function UploadSection({
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-xl">
-        <h2 className="mb-4 text-xl font-bold text-white">Describe the Issue</h2>
+        <h2 className="mb-4 text-xl font-bold text-white">{t("describeIssue")}</h2>
 
-        <label className="mb-1 block text-sm font-semibold text-slate-200">Issue details</label>
+        <label className="mb-1 block text-sm font-semibold text-slate-200">{t("issueDetails")}</label>
         <textarea
           value={form.text}
           onChange={(event) => onFormChange("text", event.target.value)}
           rows={7}
-          placeholder="Example: Pothole near bus stop causes accidents during rain."
+          placeholder={t("potholePlaceholder")}
           className="mb-4 w-full rounded-xl border border-white/10 bg-slate-950/70 p-3 text-sm text-white outline-none transition focus:border-emerald-400/60"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-200">Location</label>
+            <label className="mb-1 block text-sm font-semibold text-slate-200">{t("locationLabel")}</label>
             <input
               value={form.location}
               onChange={(event) => onFormChange("location", event.target.value)}
-              placeholder="Street, area, city"
+              placeholder={t("locationPlaceholder")}
               className="w-full rounded-xl border border-white/10 bg-slate-950/70 p-3 text-sm text-white outline-none transition focus:border-emerald-400/60"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-200">Landmark (optional)</label>
+            <label className="mb-1 block text-sm font-semibold text-slate-200">{t("landmarkLabel")}</label>
             <input
               value={form.landmark}
               onChange={(event) => onFormChange("landmark", event.target.value)}
-              placeholder="Near metro station"
+              placeholder={t("landmarkPlaceholder")}
               className="w-full rounded-xl border border-white/10 bg-slate-950/70 p-3 text-sm text-white outline-none transition focus:border-emerald-400/60"
             />
           </div>
@@ -151,7 +153,7 @@ export function UploadSection({
           onClick={onDetectLocation}
           className="mt-4 rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
         >
-          {locationLoading ? "Detecting location..." : "Use current location"}
+          {locationLoading ? t("detectingLocation") : t("useCurrentLocation")}
         </button>
       </div>
     </motion.section>

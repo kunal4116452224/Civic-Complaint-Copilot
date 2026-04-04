@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/Navbar";
+import { ClientProviders } from "@/components/ClientProviders";
 import { CIVIC_QUOTES } from "@/data/constants";
 import "./globals.css";
 
@@ -33,11 +34,13 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen text-slate-900 antialiased dark:text-slate-100">
-        <Navbar />
-        {children}
-        <footer className="border-t border-white/10 px-6 py-6 text-center text-xs italic text-slate-400">
-          {CIVIC_QUOTES[3]}
-        </footer>
+        <ClientProviders>
+          <Navbar />
+          {children}
+          <footer className="border-t border-white/10 px-6 py-6 text-center text-xs italic text-slate-400">
+            {CIVIC_QUOTES[3]}
+          </footer>
+        </ClientProviders>
       </body>
     </html>
   );

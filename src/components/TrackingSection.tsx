@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { STATUSES } from "@/config/authorities";
 import { TRACKING_STAGES } from "@/data/constants";
 import type { Complaint } from "@/lib/types";
+import { useLang } from "@/contexts/LanguageContext";
 
 interface TrackingSectionProps {
   complaints: Complaint[];
@@ -40,16 +41,18 @@ export function TrackingSection({
   onDelete,
   onDownloadPdf,
 }: TrackingSectionProps) {
+  const { t } = useLang();
+
   return (
     <section className="space-y-4">
       <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-xl">
-        <h2 className="text-2xl font-bold text-white">Complaint Tracking</h2>
-        <p className="mt-1 text-sm text-slate-300">Track progress from submission to final resolution.</p>
+        <h2 className="text-2xl font-bold text-white">{t("complaintTracking")}</h2>
+        <p className="mt-1 text-sm text-slate-300">{t("trackProgressDesc")}</p>
       </div>
 
       {complaints.length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-8 text-center text-slate-300">
-          No complaints tracked yet. Submit a complaint to see timeline updates.
+          {t("noComplaintsTracked")}
         </div>
       ) : (
         complaints.map((complaint, index) => {
@@ -61,11 +64,10 @@ export function TrackingSection({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`rounded-2xl border p-5 shadow-xl transition ${
-                isHighlighted
-                  ? "border-emerald-400/60 bg-emerald-500/10"
-                  : "border-white/10 bg-slate-900/70"
-              }`}
+              className={`rounded-2xl border p-5 shadow-xl transition ${isHighlighted
+                ? "border-emerald-400/60 bg-emerald-500/10"
+                : "border-white/10 bg-slate-900/70"
+                }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -83,7 +85,7 @@ export function TrackingSection({
                   >
                     {STATUSES.map((status) => (
                       <option key={status} value={status}>
-                        {status}
+                        {t("status" + status.replace(/\s+/g, ""))}
                       </option>
                     ))}
                   </select>
@@ -99,7 +101,7 @@ export function TrackingSection({
                     onClick={() => onDelete(complaint.id)}
                     className="rounded-xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/20"
                   >
-                    Delete
+                    {t("delete")}
                   </button>
                 </div>
               </div>
@@ -112,16 +114,15 @@ export function TrackingSection({
                     <div key={stage.key} className="rounded-xl border border-white/10 bg-slate-950/70 p-3">
                       <div className="mb-2 flex items-center gap-2">
                         <span
-                          className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                            completed ? "bg-emerald-400 text-emerald-950" : "bg-slate-700 text-slate-200"
-                          }`}
+                          className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${completed ? "bg-emerald-400 text-emerald-950" : "bg-slate-700 text-slate-200"
+                            }`}
                         >
                           {stage.icon}
                         </span>
-                        <p className="text-sm font-semibold text-white">{stage.label}</p>
+                        <p className="text-sm font-semibold text-white">{t("status" + stage.key.replace(/\s+/g, ""))}</p>
                       </div>
                       <p className="text-xs text-slate-300">
-                        {completed ? formatTime(timestamp) : "Pending update"}
+                        {completed ? formatTime(timestamp) : t("pendingUpdate")}
                       </p>
                     </div>
                   );
